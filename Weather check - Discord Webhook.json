@@ -1,0 +1,95 @@
+[
+    {
+        "id": "b3f5f97f53b2abb2",
+        "type": "tab",
+        "label": "Miracle - Weather",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "1b6c59a6.96e58d",
+        "type": "inject",
+        "z": "b3f5f97f53b2abb2",
+        "name": "Get Weather at 7:00 AM",
+        "props": [],
+        "repeat": "86400",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "0.1",
+        "topic": "",
+        "x": 170,
+        "y": 60,
+        "wires": [
+            [
+                "ba8f7b2b.8d5648"
+            ]
+        ]
+    },
+    {
+        "id": "ba8f7b2b.8d5648",
+        "type": "http request",
+        "z": "b3f5f97f53b2abb2",
+        "name": "Weatherbit API Request",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://api.weatherbit.io/v2.0/current?city=Paris&key=YOUR_API_KEY",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 430,
+        "y": 200,
+        "wires": [
+            [
+                "153e01f3.1ed2d7"
+            ]
+        ]
+    },
+    {
+        "id": "153e01f3.1ed2d7",
+        "type": "function",
+        "z": "b3f5f97f53b2abb2",
+        "name": "Format Weather Data",
+        "func": "var weatherDescription = msg.payload.data[0].weather.description.toLowerCase();\nvar emoji = '';\nvar color = 5814783;\n\n// Emojis and colors based on weather conditions\nif (weatherDescription.includes('clear')) {\n    emoji = '☀️';\n    color = 16776960; // Yellow\n} else if (weatherDescription.includes('cloud')) {\n    emoji = '☁️';\n    color = 10526880; // Grey\n} else if (weatherDescription.includes('rain')) {\n    emoji = '🌧️';\n    color = 3145981; // Blue\n} else if (weatherDescription.includes('snow')) {\n    emoji = '❄️';\n    color = 16421912; // White\n} else if (weatherDescription.includes('storm')) {\n    emoji = '🌩️';\n    color = 14177041; // Dark Orange\n} else if (weatherDescription.includes('wind')) {\n    emoji = '💨';\n    color = 12632256; // Light Grey\n} else {\n    emoji = '🌈';\n    color = 16711935; // Magenta\n}\n\nmsg.payload = {\n    content: `Good morning! Here's the weather in Paris ${emoji}`,\n    embeds: [{\n        title: \"Weather Report - Paris\",\n        description: `Temperature: ${msg.payload.data[0].temp}°C\nWeather: ${msg.payload.data[0].weather.description}\nWind Speed: ${msg.payload.data[0].wind_spd} m/s\nHumidity: ${msg.payload.data[0].rh}%`,\n        color: color\n    }]\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 140,
+        "wires": [
+            [
+                "96ec174d.7055d8"
+            ]
+        ]
+    },
+    {
+        "id": "96ec174d.7055d8",
+        "type": "http request",
+        "z": "b3f5f97f53b2abb2",
+        "name": "Send to Discord",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://discord.com/api/webhooks/",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1100,
+        "y": 140,
+        "wires": [
+            []
+        ]
+    }
+]
