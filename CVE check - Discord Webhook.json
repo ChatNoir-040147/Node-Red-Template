@@ -11,7 +11,7 @@
         "id": "inject_rss",
         "type": "inject",
         "z": "7fe28f629aeafa21",
-        "name": "Trigger Every 5min",
+        "name": "CVE check",
         "props": [],
         "repeat": "300",
         "crontab": "",
