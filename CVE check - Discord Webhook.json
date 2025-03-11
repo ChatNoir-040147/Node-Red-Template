@@ -1,0 +1,110 @@
+[
+    {
+        "id": "7fe28f629aeafa21",
+        "type": "tab",
+        "label": "Miracle - CVE",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "inject_rss",
+        "type": "inject",
+        "z": "7fe28f629aeafa21",
+        "name": "Trigger Every 5min",
+        "props": [],
+        "repeat": "300",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "",
+        "topic": "",
+        "x": 140,
+        "y": 60,
+        "wires": [
+            [
+                "fetch_rss"
+            ]
+        ]
+    },
+    {
+        "id": "fetch_rss",
+        "type": "http request",
+        "z": "7fe28f629aeafa21",
+        "name": "Fetch RSS Feed",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://cvefeed.io/rssfeed/latest.xml",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 350,
+        "y": 160,
+        "wires": [
+            [
+                "parse_xml"
+            ]
+        ]
+    },
+    {
+        "id": "parse_xml",
+        "type": "xml",
+        "z": "7fe28f629aeafa21",
+        "name": "Parse XML",
+        "property": "payload",
+        "attr": "",
+        "chr": "",
+        "x": 590,
+        "y": 160,
+        "wires": [
+            [
+                "extract_cve"
+            ]
+        ]
+    },
+    {
+        "id": "extract_cve",
+        "type": "function",
+        "z": "7fe28f629aeafa21",
+        "name": "Check for New CVE",
+        "func": "function stripHtml(html) {\n    return html.replace(/<[^>]+>/g, ''); // Supprime toutes les balises HTML\n}\n\nvar items = msg.payload.rss.channel[0].item;\nif (!items || items.length === 0) return null;\n\nvar latestCVE = items[0].title[0];\nvar lastCVE = flow.get('lastCVE') || '';\n//var lastCVE = null;\nif (latestCVE === lastCVE) {\n    return null; // Ne pas envoyer si déjà traité\n    \n}\n\nflow.set('lastCVE', latestCVE);\n\nvar cveLink = items[0].link[0];\nvar cveDesc = stripHtml(items[0].description[0]); // Nettoyage du HTML\n\nmsg.payload = {\n    content: `🚨 **Nouvelle CVE détectée !**\\n\\n🔹 **${latestCVE}**\\n📌 ${cveDesc}\\n🔗 **Détails :** [Voir ici](${cveLink})`\n};\n\nreturn msg;\n\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 820,
+        "y": 380,
+        "wires": [
+            [
+                "send_discord"
+            ]
+        ]
+    },
+    {
+        "id": "send_discord",
+        "type": "http request",
+        "z": "7fe28f629aeafa21",
+        "name": "Send to Discord",
+        "method": "POST",
+        "paytoqs": "ignore",
+        "url": "https://discord.com/api/webhooks/",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1120,
+        "y": 380,
+        "wires": [
+            []
+        ]
+    }
+]
